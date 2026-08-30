@@ -409,8 +409,9 @@ class ModMakerApp(ctk.CTk):
             # 3. Image Processing Logic
             if use_smart_process:
                 is_game = any(word in template_name.lower() for word in ["game", "blu-ray", "manga"])
+                is_custom_box = shape_choice != ar("حجم قياسي (PS4/PS5/Blu-ray)")
                 
-                if is_game:
+                if is_game or is_custom_box:
                     composite = Image.new('RGB', (3173, 1962), color=(15, 20, 35))
                     front_w, spine_w, back_w = 1450, 273, 1450
                     
@@ -446,6 +447,10 @@ class ModMakerApp(ctk.CTk):
                         darkener = Image.new('RGB', (back_w, 1962), color=(0, 0, 0))
                         back_cover = Image.blend(back_cover, darkener, alpha=0.5)
                         composite.paste(back_cover, (0, 0))
+                        
+                        spine_cover = img.resize((spine_w, 1962), Image.Resampling.LANCZOS).filter(ImageFilter.GaussianBlur(15))
+                        spine_cover = Image.blend(spine_cover, Image.new('RGB', (spine_w, 1962), color=(0, 0, 0)), alpha=0.2)
+                        composite.paste(spine_cover, (back_w, 0))
                     
                     final_texture = composite.resize((tex_w, tex_h), Image.Resampling.LANCZOS)
                     final_texture.save(tex_path)
@@ -481,30 +486,57 @@ class ModMakerApp(ctk.CTk):
             # 4. Copy 3D Models
             new_obj = os.path.join(pack_path, "objects_meshes", f"item{item_index}.obj")
             new_mtl = os.path.join(pack_path, "objects_meshes", f"item{item_index}.mtl")
+            
+            is_custom_shape = shape_choice != ar("حجم قياسي (PS4/PS5/Blu-ray)")
+            
+            if is_custom_shape:
+                # Generate a unit cube with proper UVs
+                box_obj = f"mtllib item{item_index}.mtl\n"
+                box_obj += "v -0.5 -0.5 0.5\nv 0.5 -0.5 0.5\nv 0.5 0.5 0.5\nv -0.5 0.5 0.5\n"
+                box_obj += "v -0.5 -0.5 -0.5\nv 0.5 -0.5 -0.5\nv 0.5 0.5 -0.5\nv -0.5 0.5 -0.5\n"
+                box_obj += "vt 0.543 0.0\nvt 1.0 0.0\nvt 1.0 1.0\nvt 0.543 1.0\n" # Front (1-4)
+                box_obj += "vt 0.457 0.0\nvt 0.0 0.0\nvt 0.0 1.0\nvt 0.457 1.0\n" # Back (5-8)
+                box_obj += "vt 0.457 0.0\nvt 0.543 0.0\nvt 0.543 1.0\nvt 0.457 1.0\n" # Spine/Sides (9-12)
+                box_obj += "usemtl Material\n"
+                box_obj += "f 1/1 2/2 3/3 4/4\n" # Front
+                box_obj += "f 6/5 5/6 8/7 7/8\n" # Back
+                box_obj += "f 5/9 1/10 4/11 8/12\n" # Left
+                box_obj += "f 2/9 6/10 7/11 3/12\n" # Right
+                box_obj += "f 4/9 3/10 7/11 8/12\n" # Top
+                box_obj += "f 5/9 6/10 2/11 1/12\n" # Bottom
                 
-            with open(template_obj, "r") as f:
-                obj_content = f.read()
-            obj_content = re.sub(r'mtllib\s+.*\.mtl', f'mtllib item{item_index}.mtl', obj_content)
-            with open(new_obj, "w") as f:
-                f.write(obj_content)
+                with open(new_obj, "w") as f:
+                    f.write(box_obj)
+                    
+                box_mtl = "newmtl Material\n"
+                box_mtl += "Ka 1.000 1.000 1.000\nKd 1.000 1.000 1.000\nKs 0.000 0.000 0.000\n"
+                box_mtl += f"map_Kd ../objects_textures/item{item_index}.jpg\n"
+                with open(new_mtl, "w") as f:
+                    f.write(box_mtl)
+            else:
+                with open(template_obj, "r") as f:
+                    obj_content = f.read()
+                obj_content = re.sub(r'mtllib\s+.*\.mtl', f'mtllib item{item_index}.mtl', obj_content)
+                with open(new_obj, "w") as f:
+                    f.write(obj_content)
+                    
+                with open(template_mtl, "r") as f:
+                    mtl_content = f.read()
+                mtl_content = re.sub(r'map_Kd\s+.*', f'map_Kd ../objects_textures/item{item_index}.jpg', mtl_content)
+                with open(new_mtl, "w") as f:
+                    f.write(mtl_content)
                 
-            with open(template_mtl, "r") as f:
-                mtl_content = f.read()
-            mtl_content = re.sub(r'map_Kd\s+.*', f'map_Kd ../objects_textures/item{item_index}.jpg', mtl_content)
-            with open(new_mtl, "w") as f:
-                f.write(mtl_content)
-                
-            # Determine Box Shape Scale
+            # Determine Box Shape Scale (meters)
             if shape_choice == ar("مربع وسميك (PS1/CD)"):
-                local_scale = [1.2, 0.7, 2.5]
+                local_scale = [0.15, 0.15, 0.02]
             elif shape_choice == ar("نحيف وطويل (Nintendo Switch)"):
-                local_scale = [1.0, 1.5, 0.8]
+                local_scale = [0.10, 0.17, 0.015]
             elif shape_choice == ar("مستطيل عريض (Keyboard)"):
-                local_scale = [3.3, 1.2, 0.6]
+                local_scale = [0.45, 0.15, 0.05]
             elif shape_choice == ar("علبة هاتف (Mobile Phone)"):
-                local_scale = [0.8, 1.0, 1.2]
+                local_scale = [0.08, 0.16, 0.04]
             elif shape_choice == ar("كرتون كونسول ضخم (PS4/Xbox)"):
-                local_scale = [2.5, 2.5, 1.5]
+                local_scale = [0.40, 0.30, 0.15]
             else:
                 local_scale = [1.2, 1.2, 1.2]
                 
