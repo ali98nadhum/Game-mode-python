@@ -187,6 +187,8 @@ class ModMakerApp(ctk.CTk):
         self.image_entry = ctk.CTkEntry(image_frame, placeholder_text=ar("رابط الصورة أو مسارها من الجهاز"), width=340, justify="right")
         self.image_entry.pack(side="left")
         
+        self.btn_fix_perspective = ctk.CTkButton(image_frame, text=ar("تعديل الميلان (اختياري)"), command=self.open_perspective_fixer, fg_color="#F39C12", hover_color="#D68910", width=140)
+        self.btn_fix_perspective.pack(side="left", padx=5)        
         self.price_entry = ctk.CTkEntry(self.tab_add, placeholder_text=ar("السعر (اتركه فارغاً لسعر تلقائي مناسب للسوق العراقي)"), width=450, justify="right")
         self.price_entry.pack(pady=10)
         
@@ -202,7 +204,7 @@ class ModMakerApp(ctk.CTk):
         self.shape_dropdown.pack(pady=10)
         
         self.smart_process_var = ctk.BooleanVar(value=True)
-        smart_checkbox = ctk.CTkCheckBox(self.tab_add, text=ar("معالجة الصورة الذكية (إنشاء كعب وخلفية) - أغلقه إذا كنت تضيف جهاز!"), variable=self.smart_process_var, font=("Arial", 14, "bold"))
+        smart_checkbox = ctk.CTkCheckBox(self.tab_add, text=ar("المعالجة الذكية وقص الصور الآلي (اتركه مفعلاً دائماً ✅)"), variable=self.smart_process_var, font=("Arial", 14, "bold"))
         smart_checkbox.pack(pady=15)
         
         add_btn = ctk.CTkButton(self.tab_add, text=ar("إضافة المنتج"), command=self.add_item, height=45, font=("Arial", 16, "bold"))
@@ -300,14 +302,15 @@ class ModMakerApp(ctk.CTk):
             messagebox.showerror(ar("خطأ"), ar("يجب تثبيت مكتبة opencv. من فضلك اكتب في موجه الأوامر: pip install opencv-python numpy"))
             return
             
-        current_img = self.img_path_var.get()
+        current_img = self.image_entry.get().strip()
         if not current_img or not os.path.exists(current_img):
-            messagebox.showwarning(ar("تنبيه"), ar("يرجى اختيار صورة أولاً قبل تعديل الميلان!"))
+            messagebox.showwarning(ar("تنبيه"), ar("يرجى استعراض واختيار صورة صحيحة أولاً قبل تعديل الميلان!"))
             return
             
         def on_fixed(new_path):
-            self.img_path_var.set(new_path)
-            self.lbl_img_path.configure(text=ar("تم تعديل الميلان بنجاح!"))
+            self.image_entry.delete(0, 'end')
+            self.image_entry.insert(0, new_path)
+            messagebox.showinfo(ar("نجاح"), ar("تم تعديل الميلان بنجاح! يمكنك الآن الإضافة."))
             
         PerspectiveFixerWindow(self, current_img, on_fixed)
         
