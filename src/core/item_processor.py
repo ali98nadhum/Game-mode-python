@@ -20,11 +20,16 @@ class ItemProcessor:
         except Exception:
             raise ValueError("ملف products.json غير موجود، تأكد من إنشاء الحزمة أولاً.")
             
-        if "Products" not in data:
-            data["Products"] = []
-        products = data["Products"]
+        licenses = data.get("ProductLicenses", [])
+        if not licenses:
+            raise ValueError("ملف products.json تالف أو غير صالح (لا يحتوي على ProductLicenses).")
+            
+        if "Products" not in licenses[0]:
+            licenses[0]["Products"] = []
+            
+        products = licenses[0]["Products"]
         
-        base_id = data.get("LicenseInfo", {}).get("BaseID", 98000)
+        base_id = licenses[0].get("ID", 98000)
         item_index = len(products)
         next_id = base_id + item_index
         
