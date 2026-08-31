@@ -1,10 +1,8 @@
-import re
-
-with open('app.py', 'r', encoding='utf-8') as f:
-    content = f.read()
-
-imports = """from PIL import Image, ImageFilter, ImageTk
+import os
 import tkinter as tk
+import customtkinter as ctk
+from PIL import Image, ImageTk
+from src.utils.helpers import ar
 
 try:
     import cv2
@@ -12,10 +10,6 @@ try:
     CV2_AVAILABLE = True
 except ImportError:
     CV2_AVAILABLE = False
-"""
-content = re.sub(r'from PIL import Image, ImageFilter', imports, content)
-
-perspective_class = """
 
 class PerspectiveFixerWindow(ctk.CTkToplevel):
     def __init__(self, master, image_path, callback):
@@ -27,9 +21,9 @@ class PerspectiveFixerWindow(ctk.CTkToplevel):
         
         self.points = []
         
-        # Load image
-        self.original_img_cv = cv2.imread(self.image_path)
-        self.original_img_cv = cv2.cvtColor(self.original_img_cv, cv2.COLOR_BGR2RGB)
+        # Load image safely (avoids cv2 Windows Arabic path bug)
+        pil_img = Image.open(self.image_path).convert('RGB')
+        self.original_img_cv = np.array(pil_img)
         self.h, self.w = self.original_img_cv.shape[:2]
         
         # Calculate scale to fit 800x600 canvas
@@ -101,45 +95,3 @@ class PerspectiveFixerWindow(ctk.CTkToplevel):
         
         self.callback(temp_path)
         self.destroy()
-
-class ModMakerApp"""
-content = content.replace("class ModMakerApp", perspective_class)
-
-button_injection = """
-        self.img_frame = ctk.CTkFrame(self.tab_add)
-        self.img_frame.pack(pady=10)
-        
-        self.btn_browse_img = ctk.CTkButton(self.img_frame, text=ar("اختر صورة المنتج"), command=self.browse_image)
-        self.btn_browse_img.pack(side=tk.LEFT, padx=5)
-        
-        self.btn_fix_perspective = ctk.CTkButton(self.img_frame, text=ar("تعديل الميلان (اختياري)"), command=self.open_perspective_fixer, fg_color="#F39C12", hover_color="#D68910")
-        self.btn_fix_perspective.pack(side=tk.LEFT, padx=5)
-"""
-# Replace the old browse button logic
-old_btn = """        self.btn_browse_img = ctk.CTkButton(self.tab_add, text=ar("اختر صورة المنتج"), command=self.browse_image)
-        self.btn_browse_img.pack(pady=10)"""
-content = content.replace(old_btn, button_injection)
-
-# Add method to ModMakerApp
-fixer_method = """    def open_perspective_fixer(self):
-        if not CV2_AVAILABLE:
-            messagebox.showerror(ar("خطأ"), ar("يجب تثبيت مكتبة opencv. من فضلك اكتب في موجه الأوامر: pip install opencv-python numpy"))
-            return
-            
-        current_img = self.img_path_var.get()
-        if not current_img or not os.path.exists(current_img):
-            messagebox.showwarning(ar("تنبيه"), ar("يرجى اختيار صورة أولاً قبل تعديل الميلان!"))
-            return
-            
-        def on_fixed(new_path):
-            self.img_path_var.set(new_path)
-            self.lbl_img_path.configure(text=ar("تم تعديل الميلان بنجاح!"))
-            
-        PerspectiveFixerWindow(self.root, current_img, on_fixed)
-        
-    def add_item(self):"""
-content = content.replace("    def add_item(self):", fixer_method)
-
-with open('app.py', 'w', encoding='utf-8') as f:
-    f.write(content)
-
