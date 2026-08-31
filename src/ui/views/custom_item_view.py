@@ -29,25 +29,41 @@ class CustomItemView(ctk.CTkFrame):
         title_lbl = ctk.CTkLabel(self.scroll_frame, text=ar("إضافة منتج مخصص"), font=("Arial", 28, "bold"))
         title_lbl.pack(pady=20)
 
-        # Dropdowns
-        dropdown_frame = ctk.CTkFrame(self.scroll_frame, fg_color="transparent")
-        dropdown_frame.pack(pady=10, fill="x")
+        # Dropdowns Section
+        pack_frame = ctk.CTkFrame(self.scroll_frame, fg_color="transparent")
+        pack_frame.pack(pady=(10, 5), fill="x", padx=20)
         
-        self.pack_dropdown = ctk.CTkOptionMenu(dropdown_frame, variable=self.pack_var, values=[], width=350, height=40, font=("Arial", 14))
-        self.pack_dropdown.pack(side="left", padx=10, expand=True)
+        lbl_pack = ctk.CTkLabel(pack_frame, text=ar("1. اختر الحزمة (المجلد الذي سيتم الحفظ فيه)"), font=("Arial", 16, "bold"))
+        lbl_pack.pack(anchor="e", padx=10, pady=(0, 5))
+        self.pack_dropdown = ctk.CTkOptionMenu(pack_frame, variable=self.pack_var, values=[], width=500, height=40, font=("Arial", 14))
+        self.pack_dropdown.pack(fill="x", padx=10)
         
-        self.template_dropdown = ctk.CTkOptionMenu(dropdown_frame, variable=self.template_var, values=[], width=350, height=40, font=("Arial", 14))
-        self.template_dropdown.pack(side="right", padx=10, expand=True)
+        template_frame = ctk.CTkFrame(self.scroll_frame, fg_color="transparent")
+        template_frame.pack(pady=(10, 5), fill="x", padx=20)
         
-        # Product Name
-        self.item_name_entry = ctk.CTkEntry(self.scroll_frame, placeholder_text=ar("اسم المنتج (مثلاً: قراند 5)"), width=500, height=45, justify="right", font=("Arial", 14))
-        self.item_name_entry.pack(pady=15)
+        lbl_template = ctk.CTkLabel(template_frame, text=ar("2. اختر القالب ثلاثي الأبعاد (إذا كانت لعبة اختر Blu-ray)"), font=("Arial", 16, "bold"))
+        lbl_template.pack(anchor="e", padx=10, pady=(0, 5))
+        self.template_dropdown = ctk.CTkOptionMenu(template_frame, variable=self.template_var, values=[], width=500, height=40, font=("Arial", 14))
+        self.template_dropdown.pack(fill="x", padx=10)
+        
+        # Product Details Section
+        details_frame = ctk.CTkFrame(self.scroll_frame, fg_color="transparent")
+        details_frame.pack(pady=(15, 5), fill="x", padx=20)
+        
+        lbl_name = ctk.CTkLabel(details_frame, text=ar("3. تفاصيل المنتج (الاسم والسعر)"), font=("Arial", 16, "bold"))
+        lbl_name.pack(anchor="e", padx=10, pady=(0, 5))
+        
+        self.item_name_entry = ctk.CTkEntry(details_frame, placeholder_text=ar("اسم المنتج (مثلاً: قراند 5)"), height=45, justify="right", font=("Arial", 14))
+        self.item_name_entry.pack(fill="x", padx=10, pady=5)
+        
+        self.price_entry = ctk.CTkEntry(details_frame, placeholder_text=ar("السعر (اتركه فارغاً لسعر تلقائي مناسب)"), height=45, justify="right", font=("Arial", 14))
+        self.price_entry.pack(fill="x", padx=10, pady=5)
         
         # Image Selection Frame
         img_frame = ctk.CTkFrame(self.scroll_frame, fg_color="#2b2b2b", corner_radius=10)
-        img_frame.pack(pady=15, fill="x", padx=40)
+        img_frame.pack(pady=15, fill="x", padx=20)
         
-        lbl_img_title = ctk.CTkLabel(img_frame, text=ar("صورة المنتج"), font=("Arial", 16, "bold"))
+        lbl_img_title = ctk.CTkLabel(img_frame, text=ar("4. صورة المنتج"), font=("Arial", 16, "bold"))
         lbl_img_title.pack(pady=(10, 0))
         
         img_controls = ctk.CTkFrame(img_frame, fg_color="transparent")
@@ -56,29 +72,28 @@ class CustomItemView(ctk.CTkFrame):
         self.btn_browse = ctk.CTkButton(img_controls, text=ar("استعراض صورة..."), command=self.browse_image, width=150, height=35)
         self.btn_browse.pack(side="left", padx=10)
         
-        self.btn_fix = ctk.CTkButton(img_controls, text=ar("تعديل الميلان"), command=self.open_perspective_fixer, width=150, height=35, fg_color="#F39C12", hover_color="#D68910")
+        self.btn_fix = ctk.CTkButton(img_controls, text=ar("تعديل الميلان (اختياري)"), command=self.open_perspective_fixer, width=150, height=35, fg_color="#F39C12", hover_color="#D68910")
         self.btn_fix.pack(side="left", padx=10)
         
         self.lbl_img_path = ctk.CTkLabel(img_frame, text=ar("لم يتم اختيار صورة"), text_color="gray", font=("Arial", 12))
         self.lbl_img_path.pack(pady=(0, 10))
         
-        # Price
-        self.price_entry = ctk.CTkEntry(self.scroll_frame, placeholder_text=ar("السعر (اتركه فارغاً لسعر تلقائي مناسب)"), width=500, height=45, justify="right", font=("Arial", 14))
-        self.price_entry.pack(pady=15)
-        
         # Shape Options
-        lbl_shape = ctk.CTkLabel(self.scroll_frame, text=ar("شكل وحجم الكرتون (في الرف)"), font=("Arial", 16, "bold"))
-        lbl_shape.pack(pady=(15, 5))
+        shape_frame = ctk.CTkFrame(self.scroll_frame, fg_color="transparent")
+        shape_frame.pack(pady=(10, 5), fill="x", padx=20)
         
-        self.shape_dropdown = ctk.CTkOptionMenu(self.scroll_frame, variable=self.shape_var, values=[
+        lbl_shape = ctk.CTkLabel(shape_frame, text=ar("5. شكل وحجم الكرتون (كيف سيظهر في الرف)"), font=("Arial", 16, "bold"))
+        lbl_shape.pack(anchor="e", padx=10, pady=(0, 5))
+        
+        self.shape_dropdown = ctk.CTkOptionMenu(shape_frame, variable=self.shape_var, values=[
             ar("حجم قياسي (PS4/PS5/Blu-ray)"),
             ar("مربع وسميك (PS1/CD)"),
             ar("نحيف وطويل (Nintendo Switch)"),
             ar("مستطيل عريض (Keyboard)"),
             ar("علبة هاتف (Mobile Phone)"),
             ar("كرتون كونسول ضخم (PS4/Xbox)")
-        ], width=500, height=40, font=("Arial", 14))
-        self.shape_dropdown.pack(pady=5)
+        ], height=40, font=("Arial", 14))
+        self.shape_dropdown.pack(fill="x", padx=10)
         
         # Smart Checkbox
         smart_checkbox = ctk.CTkCheckBox(self.scroll_frame, text=ar("المعالجة الذكية وقص الصور الآلي (اتركه مفعلاً دائماً ✅)"), variable=self.smart_process_var, font=("Arial", 14, "bold"))

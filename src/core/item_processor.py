@@ -151,7 +151,10 @@ class ItemProcessor:
                     final_texture.save(tex_path)
             else:
                 final_texture = img.resize((tex_w, tex_h), Image.Resampling.LANCZOS)
-                final_texture.save(tex_path)
+                
+            # Flip texture vertically because Unity reads UVs from bottom-left (V=0 is bottom)
+            final_texture = final_texture.transpose(Image.FLIP_TOP_BOTTOM)
+            final_texture.save(tex_path)
                 
             # 4. Copy 3D Models
             new_obj = os.path.join(pack_path, "objects_meshes", f"item{item_index}.obj")
@@ -166,10 +169,10 @@ class ItemProcessor:
                 # Normals
                 box_obj += "vn 0 0 1\nvn 0 0 -1\nvn -1 0 0\nvn 1 0 0\nvn 0 1 0\nvn 0 -1 0\n"
                 
-                # UVs
-                box_obj += "vt 0.543 1.0\nvt 1.0 1.0\nvt 1.0 0.0\nvt 0.543 0.0\n" # Front 
-                box_obj += "vt 0.457 1.0\nvt 0.0 1.0\nvt 0.0 0.0\nvt 0.457 0.0\n" # Back
-                box_obj += "vt 0.457 1.0\nvt 0.543 1.0\nvt 0.543 0.0\nvt 0.457 0.0\n" # Spine/Sides
+                # Standard Unity UVs (V=0 is bottom)
+                box_obj += "vt 0.543 0.0\nvt 1.0 0.0\nvt 1.0 1.0\nvt 0.543 1.0\n" # Front 
+                box_obj += "vt 0.457 0.0\nvt 0.0 0.0\nvt 0.0 1.0\nvt 0.457 1.0\n" # Back
+                box_obj += "vt 0.457 0.0\nvt 0.543 0.0\nvt 0.543 1.0\nvt 0.457 1.0\n" # Spine/Sides
                 
                 box_obj += "usemtl Material\n"
                 # Front face (+Z)
