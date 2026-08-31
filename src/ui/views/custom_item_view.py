@@ -100,13 +100,33 @@ class CustomItemView(ctk.CTkFrame):
         self.pack_dropdown.configure(values=display_packs)
             
         # Refresh Product Types (Unified List)
-        templates = PackManager.get_templates()
-        if not templates:
-            templates = [ar("لا توجد قوالب")]
+        self.template_mapping = {
+            ar("لعبة بلايستيشن 4 (PS4 Game)"): "Blu-ray",
+            ar("لعبة بلايستيشن 5 (PS5 Game)"): "PS5",
+            ar("لعبة بلايستيشن 3 (PS3 Game)"): "PS3",
+            ar("لعبة اكس بوكس 360 (Xbox 360)"): "XBox360",
+            ar("لعبة اكس بوكس ون (Xbox One)"): "XBoxOne",
+            ar("لعبة اكس بوكس سيريس (Xbox Series)"): "XBoxSeriesX",
+            ar("جهاز بلايستيشن 5 (PS5 Console)"): "Console",
+            ar("جهاز بلايستيشن 4 (PS4 Console)"): "Console",
+            ar("مانجا (Manga)"): "AttackonTitanManga"
+        }
+        
+        # We also dynamically add any other unknown templates just in case
+        existing_templates = PackManager.get_templates()
+        mapped_values = list(self.template_mapping.values())
+        for t in existing_templates:
+            if t not in mapped_values:
+                friendly_name = ar(f"قالب مخصص: {t}")
+                self.template_mapping[friendly_name] = t
+                
+        presets = list(self.template_mapping.keys())
+        if not presets:
+            presets = [ar("لا توجد قوالب")]
             
-        self.type_dropdown.configure(values=templates)
-        if self.product_type_var.get() not in templates:
-            self.product_type_var.set(templates[0])
+        self.type_dropdown.configure(values=presets)
+        if self.product_type_var.get() not in presets:
+            self.product_type_var.set(presets[0])
 
     def browse_image(self):
         file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg *.jpeg *.png *.webp")])
@@ -139,7 +159,10 @@ class CustomItemView(ctk.CTkFrame):
         # Reverse map to get raw pack name
         pack_name = next((p for p in PackManager.get_packs() if ar(p) == pack_name_display), pack_name_display)
             
-        template_name = self.product_type_var.get()
+        # Map friendly name back to template folder
+        friendly_type = self.product_type_var.get()
+        template_name = getattr(self, 'template_mapping', {}).get(friendly_type, "Blu-ray")
+        
         shape_choice = "Standard" # We don't use this anymore but keep it for signature compat
 
             
