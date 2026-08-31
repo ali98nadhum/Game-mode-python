@@ -101,9 +101,11 @@ class CustomItemView(ctk.CTkFrame):
             
         # Refresh Product Types (Unified List)
         self.template_mapping = {
-            ar("لعبة بلايستيشن 4 (PS4 Game)"): "Blu-ray",
             ar("لعبة بلايستيشن 5 (PS5 Game)"): "PS5",
+            ar("لعبة بلايستيشن 4 (PS4 Game)"): "Blu-ray",
             ar("لعبة بلايستيشن 3 (PS3 Game)"): "PS3",
+            ar("لعبة بلايستيشن 2 (PS2 Game)"): "PS2_Scale",
+            ar("لعبة بلايستيشن 1 (PS1 Game)"): "PS1_Scale",
             ar("لعبة اكس بوكس 360 (Xbox 360)"): "XBox360",
             ar("لعبة اكس بوكس ون (Xbox One)"): "XBoxOne",
             ar("لعبة اكس بوكس سيريس (Xbox Series)"): "XBoxSeriesX",

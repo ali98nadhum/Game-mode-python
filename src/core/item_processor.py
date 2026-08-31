@@ -20,11 +20,23 @@ class ItemProcessor:
         except Exception:
             raise ValueError("ملف products.json غير موجود، تأكد من إنشاء الحزمة أولاً.")
             
-        products = data.get("Products", [])
+        if "Products" not in data:
+            data["Products"] = []
+        products = data["Products"]
+        
         base_id = data.get("LicenseInfo", {}).get("BaseID", 98000)
         item_index = len(products)
         next_id = base_id + item_index
         
+        # Check for special scale modifiers (PS1, PS2)
+        scale_modifier = None
+        if template_name == "PS1_Scale":
+            template_name = "Blu-ray"
+            scale_modifier = "PS1"
+        elif template_name == "PS2_Scale":
+            template_name = "Blu-ray"
+            scale_modifier = "PS2"
+            
         template_dir = os.path.join(TEMPLATES_DIR, template_name)
         if not os.path.exists(template_dir):
             raise ValueError(f"مجلد القالب غير موجود: {template_name}")
@@ -100,7 +112,10 @@ class ItemProcessor:
                 # Direct resize to match template exactly!
                 final_texture = img.resize((tex_w, tex_h), Image.Resampling.LANCZOS)
                 
-            # DO NOT rotate or flip. The user provides the correct texture layout, or we use the proven smart process.
+            # Fix Unity mapping issues for Console (UVs are sideways/rotated left)
+            if template_name == "Console":
+                final_texture = final_texture.transpose(Image.ROTATE_270)
+                
             final_texture.save(tex_path)
                 
             # 3. Copy 3D Models Exactly as they are in the template
@@ -147,6 +162,12 @@ class ItemProcessor:
             else:
                 # Default for Blu-ray and all other custom templates
                 local_scale = [1.2, 1.2, 1.2]
+                
+                if scale_modifier == "PS1":
+                    local_scale = [0.15, 0.15, 0.02]
+                elif scale_modifier == "PS2":
+                    local_scale = [0.15, 0.15, 0.05]
+                    
                 grid_in_box = {
                     "boxSize": "_20x10x7",
                     "productCount": 20,
