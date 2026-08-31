@@ -100,23 +100,13 @@ class CustomItemView(ctk.CTkFrame):
         self.pack_dropdown.configure(values=display_packs)
             
         # Refresh Product Types (Unified List)
-        presets = [
-            ar("لعبة قياسية (PS4/PS5/Xbox)"),
-            ar("لعبة نينتندو سويتش (نحيفة)"),
-            ar("لعبة كلاسيكية / قرص (مربعة)"),
-            ar("كرتون هاتف محمول"),
-            ar("كرتون كيبورد / مستطيل عريض"),
-            ar("كرتون جهاز كونسول ضخم")
-        ]
-        
         templates = PackManager.get_templates()
-        for t in templates:
-            if t.lower() != "blu-ray":
-                presets.append(ar(f"قالب مخصص: {t}"))
-                
-        self.type_dropdown.configure(values=presets)
-        if self.product_type_var.get() not in presets:
-            self.product_type_var.set(presets[0])
+        if not templates:
+            templates = [ar("لا توجد قوالب")]
+            
+        self.type_dropdown.configure(values=templates)
+        if self.product_type_var.get() not in templates:
+            self.product_type_var.set(templates[0])
 
     def browse_image(self):
         file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg *.jpeg *.png *.webp")])
@@ -149,38 +139,9 @@ class CustomItemView(ctk.CTkFrame):
         # Reverse map to get raw pack name
         pack_name = next((p for p in PackManager.get_packs() if ar(p) == pack_name_display), pack_name_display)
             
-        product_type = self.product_type_var.get()
-        
-        # Determine template and shape based on unified dropdown
-        if ar("لعبة قياسية") in product_type:
-            template_name = "Blu-ray"
-            shape_choice = "حجم قياسي (PS4/PS5/Blu-ray)"
-        elif ar("نينتندو سويتش") in product_type:
-            template_name = "Blu-ray"
-            shape_choice = "نحيف وطويل (Nintendo Switch)"
-        elif ar("كلاسيكية") in product_type or ar("مربعة") in product_type:
-            template_name = "Blu-ray"
-            shape_choice = "مربع وسميك (PS1/CD)"
-        elif ar("هاتف") in product_type:
-            template_name = "Blu-ray"
-            shape_choice = "علبة هاتف (Mobile Phone)"
-        elif ar("كيبورد") in product_type:
-            template_name = "Blu-ray"
-            shape_choice = "مستطيل عريض (Keyboard)"
-        elif ar("كونسول ضخم") in product_type:
-            template_name = "Blu-ray"
-            shape_choice = "كرتون كونسول ضخم (PS4/Xbox)"
-        else:
-            # It's a custom template, e.g. "قالب مخصص: ActionFigure"
-            # Extract the raw template name
-            template_name = product_type.replace(ar("قالب مخصص: "), "").strip()
-            # If it's a raw string (not reshaped), try to clean it
-            if "قالب مخصص:" in product_type:
-                template_name = product_type.replace("قالب مخصص:", "").strip()
-            
-            # Since it's a custom template folder, we don't apply our custom box generation.
-            # We treat it as standard shape so it just copies the template.obj
-            shape_choice = "حجم قياسي (PS4/PS5/Blu-ray)"
+        template_name = self.product_type_var.get()
+        shape_choice = "Standard" # We don't use this anymore but keep it for signature compat
+
             
         item_name = self.item_name_entry.get().strip()
         img_source = self.img_path_var.get().strip()
