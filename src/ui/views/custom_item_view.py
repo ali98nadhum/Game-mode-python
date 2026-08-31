@@ -14,8 +14,7 @@ class CustomItemView(ctk.CTkFrame):
         
         # UI state variables
         self.pack_var = ctk.StringVar(value=ar("اختر الحزمة"))
-        self.template_var = ctk.StringVar(value=ar("اختر شكل العلبة (Template)"))
-        self.shape_var = ctk.StringVar(value=ar("حجم قياسي (PS4/PS5/Blu-ray)"))
+        self.product_type_var = ctk.StringVar(value=ar("لعبة قياسية (PS4/PS5/Xbox)"))
         self.smart_process_var = ctk.BooleanVar(value=True)
         self.img_path_var = ctk.StringVar(value="")
         
@@ -38,13 +37,13 @@ class CustomItemView(ctk.CTkFrame):
         self.pack_dropdown = ctk.CTkOptionMenu(pack_frame, variable=self.pack_var, values=[], width=500, height=40, font=("Arial", 14))
         self.pack_dropdown.pack(fill="x", padx=10)
         
-        template_frame = ctk.CTkFrame(self.scroll_frame, fg_color="transparent")
-        template_frame.pack(pady=(10, 5), fill="x", padx=20)
+        type_frame = ctk.CTkFrame(self.scroll_frame, fg_color="transparent")
+        type_frame.pack(pady=(10, 5), fill="x", padx=20)
         
-        lbl_template = ctk.CTkLabel(template_frame, text=ar("2. اختر القالب ثلاثي الأبعاد (إذا كانت لعبة اختر Blu-ray)"), font=("Arial", 16, "bold"))
-        lbl_template.pack(anchor="e", padx=10, pady=(0, 5))
-        self.template_dropdown = ctk.CTkOptionMenu(template_frame, variable=self.template_var, values=[], width=500, height=40, font=("Arial", 14))
-        self.template_dropdown.pack(fill="x", padx=10)
+        lbl_type = ctk.CTkLabel(type_frame, text=ar("2. نوع المنتج وشكل الكرتون"), font=("Arial", 16, "bold"))
+        lbl_type.pack(anchor="e", padx=10, pady=(0, 5))
+        self.type_dropdown = ctk.CTkOptionMenu(type_frame, variable=self.product_type_var, values=[], width=500, height=40, font=("Arial", 14))
+        self.type_dropdown.pack(fill="x", padx=10)
         
         # Product Details Section
         details_frame = ctk.CTkFrame(self.scroll_frame, fg_color="transparent")
@@ -63,7 +62,7 @@ class CustomItemView(ctk.CTkFrame):
         img_frame = ctk.CTkFrame(self.scroll_frame, fg_color="#2b2b2b", corner_radius=10)
         img_frame.pack(pady=15, fill="x", padx=20)
         
-        lbl_img_title = ctk.CTkLabel(img_frame, text=ar("4. صورة المنتج"), font=("Arial", 16, "bold"))
+        lbl_img_title = ctk.CTkLabel(img_frame, text=ar("4. صورة المنتج (الغلاف)"), font=("Arial", 16, "bold"))
         lbl_img_title.pack(pady=(10, 0))
         
         img_controls = ctk.CTkFrame(img_frame, fg_color="transparent")
@@ -78,34 +77,18 @@ class CustomItemView(ctk.CTkFrame):
         self.lbl_img_path = ctk.CTkLabel(img_frame, text=ar("لم يتم اختيار صورة"), text_color="gray", font=("Arial", 12))
         self.lbl_img_path.pack(pady=(0, 10))
         
-        # Shape Options
-        shape_frame = ctk.CTkFrame(self.scroll_frame, fg_color="transparent")
-        shape_frame.pack(pady=(10, 5), fill="x", padx=20)
-        
-        lbl_shape = ctk.CTkLabel(shape_frame, text=ar("5. شكل وحجم الكرتون (كيف سيظهر في الرف)"), font=("Arial", 16, "bold"))
-        lbl_shape.pack(anchor="e", padx=10, pady=(0, 5))
-        
-        self.shape_dropdown = ctk.CTkOptionMenu(shape_frame, variable=self.shape_var, values=[
-            ar("حجم قياسي (PS4/PS5/Blu-ray)"),
-            ar("مربع وسميك (PS1/CD)"),
-            ar("نحيف وطويل (Nintendo Switch)"),
-            ar("مستطيل عريض (Keyboard)"),
-            ar("علبة هاتف (Mobile Phone)"),
-            ar("كرتون كونسول ضخم (PS4/Xbox)")
-        ], height=40, font=("Arial", 14))
-        self.shape_dropdown.pack(fill="x", padx=10)
-        
         # Smart Checkbox
         smart_checkbox = ctk.CTkCheckBox(self.scroll_frame, text=ar("المعالجة الذكية وقص الصور الآلي (اتركه مفعلاً دائماً ✅)"), variable=self.smart_process_var, font=("Arial", 14, "bold"))
         smart_checkbox.pack(pady=20)
         
         # Submit Button
-        add_btn = ctk.CTkButton(self.scroll_frame, text=ar("إضافة المنتج"), command=self.add_item, height=50, width=300, font=("Arial", 18, "bold"), fg_color="#27AE60", hover_color="#2ECC71")
+        add_btn = ctk.CTkButton(self.scroll_frame, text=ar("إضافة المنتج للعبة"), command=self.add_item, height=50, width=300, font=("Arial", 18, "bold"), fg_color="#27AE60", hover_color="#2ECC71")
         add_btn.pack(pady=30)
         
         self.refresh_data()
         
     def refresh_data(self):
+        # Refresh Packs
         packs = PackManager.get_packs()
         if not packs:
             display_packs = [ar("لا توجد حزم")]
@@ -116,15 +99,24 @@ class CustomItemView(ctk.CTkFrame):
                 self.pack_var.set(display_packs[0])
         self.pack_dropdown.configure(values=display_packs)
             
+        # Refresh Product Types (Unified List)
+        presets = [
+            ar("لعبة قياسية (PS4/PS5/Xbox)"),
+            ar("لعبة نينتندو سويتش (نحيفة)"),
+            ar("لعبة كلاسيكية / قرص (مربعة)"),
+            ar("كرتون هاتف محمول"),
+            ar("كرتون كيبورد / مستطيل عريض"),
+            ar("كرتون جهاز كونسول ضخم")
+        ]
+        
         templates = PackManager.get_templates()
-        if not templates:
-            display_templates = [ar("لا توجد قوالب")]
-            self.template_var.set(ar("لا توجد قوالب"))
-        else:
-            display_templates = templates
-            if self.template_var.get() not in display_templates:
-                self.template_var.set(display_templates[0])
-        self.template_dropdown.configure(values=display_templates)
+        for t in templates:
+            if t.lower() != "blu-ray":
+                presets.append(ar(f"قالب مخصص: {t}"))
+                
+        self.type_dropdown.configure(values=presets)
+        if self.product_type_var.get() not in presets:
+            self.product_type_var.set(presets[0])
 
     def browse_image(self):
         file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg *.jpeg *.png *.webp")])
@@ -157,15 +149,42 @@ class CustomItemView(ctk.CTkFrame):
         # Reverse map to get raw pack name
         pack_name = next((p for p in PackManager.get_packs() if ar(p) == pack_name_display), pack_name_display)
             
-        template_name = self.template_var.get()
-        if template_name in [ar("اختر شكل العلبة (Template)"), ar("لا توجد قوالب"), ""]:
-            messagebox.showerror(ar("خطأ"), ar("يرجى اختيار شكل العلبة (القالب) أولاً!"))
-            return
+        product_type = self.product_type_var.get()
+        
+        # Determine template and shape based on unified dropdown
+        if ar("لعبة قياسية") in product_type:
+            template_name = "Blu-ray"
+            shape_choice = "حجم قياسي (PS4/PS5/Blu-ray)"
+        elif ar("نينتندو سويتش") in product_type:
+            template_name = "Blu-ray"
+            shape_choice = "نحيف وطويل (Nintendo Switch)"
+        elif ar("كلاسيكية") in product_type or ar("مربعة") in product_type:
+            template_name = "Blu-ray"
+            shape_choice = "مربع وسميك (PS1/CD)"
+        elif ar("هاتف") in product_type:
+            template_name = "Blu-ray"
+            shape_choice = "علبة هاتف (Mobile Phone)"
+        elif ar("كيبورد") in product_type:
+            template_name = "Blu-ray"
+            shape_choice = "مستطيل عريض (Keyboard)"
+        elif ar("كونسول ضخم") in product_type:
+            template_name = "Blu-ray"
+            shape_choice = "كرتون كونسول ضخم (PS4/Xbox)"
+        else:
+            # It's a custom template, e.g. "قالب مخصص: ActionFigure"
+            # Extract the raw template name
+            template_name = product_type.replace(ar("قالب مخصص: "), "").strip()
+            # If it's a raw string (not reshaped), try to clean it
+            if "قالب مخصص:" in product_type:
+                template_name = product_type.replace("قالب مخصص:", "").strip()
+            
+            # Since it's a custom template folder, we don't apply our custom box generation.
+            # We treat it as standard shape so it just copies the template.obj
+            shape_choice = "حجم قياسي (PS4/PS5/Blu-ray)"
             
         item_name = self.item_name_entry.get().strip()
         img_source = self.img_path_var.get().strip()
         price_str = self.price_entry.get().strip()
-        shape_choice = self.shape_var.get()
         
         if not item_name or not img_source:
             messagebox.showerror(ar("خطأ"), ar("اسم المنتج والصورة مطلوبان!"))

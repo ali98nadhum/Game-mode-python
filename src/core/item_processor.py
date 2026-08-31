@@ -152,8 +152,15 @@ class ItemProcessor:
             else:
                 final_texture = img.resize((tex_w, tex_h), Image.Resampling.LANCZOS)
                 
-            # Flip texture vertically because Unity reads UVs from bottom-left (V=0 is bottom)
-            final_texture = final_texture.transpose(Image.FLIP_TOP_BOTTOM)
+            # Fix Unity mapping issues
+            if template_name == "Blu-ray":
+                # The Blu-ray template .obj in Unity displays the texture rotated 90 degrees to the right.
+                # We rotate it 90 degrees counter-clockwise (ROTATE_90) to compensate.
+                final_texture = final_texture.transpose(Image.ROTATE_90)
+            elif is_custom_box:
+                # For custom shapes we generate, we just need to match Unity's V=0 at bottom standard
+                final_texture = final_texture.transpose(Image.FLIP_TOP_BOTTOM)
+                
             final_texture.save(tex_path)
                 
             # 4. Copy 3D Models
